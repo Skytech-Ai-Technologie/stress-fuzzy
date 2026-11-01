@@ -1,0 +1,103 @@
+# Fuzzy late fusion of calibrated unimodal evidence (WESAD multimodal).
+#
+# This implements the brief's original architecture: separate unimodal models
+# produce calibrated stress scores per synchronized view (wrist E4, chest
+# RespiBAN), and a transparent Mamdani layer fuses them. Agreement/conflict
+# between views and per-view quality modulate confidence instead of being
+# hidden by a forced label.
+#
+# Inputs are probabilities in [0, 1] with FIXED terms (design choice, not
+# fitted), so the decision layer stays stable across folds.
+
+meta:
+  engine: mamdani
+  output_variable: stress
+  output_range: [0.0, 1.0]
+  inference: min-max
+  defuzzification: centroid
+  description: >
+    Interpretable fusion of wrist and chest stress evidence with explicit
+    conflict and quality handling.
+
+output_terms:
+  low:
+    type: trapezoid
+    params: [0.0, 0.0, 0.15, 0.45]
+  medium:
+    type: triangle
+    params: [0.25, 0.5, 0.75]
+  high:
+    type: trapezoid
+    params: [0.55, 0.85, 1.0, 1.0]
+
+# Score inputs' linguistic terms are FITTED from the training subjects'
+# out-of-fold score distributions (25/50/75th percentiles, per fold) because
+# calibrated probabilities of a ~30%-prevalence class cluster low; fixed
+# [0,1] terms would rarely saturate. Agreement stays fixed by design.
+
+fitted_inputs:
+  wrist_score:
+    source: wrist_score
+    description: Calibrated wrist-model stress probability (fold-fitted terms).
+  chest_score:
+    source: chest_score
+    description: Calibrated chest-model stress probability (fold-fitted terms).
+
+fixed_inputs:
+  agreement:
+    description: 1 - |wrist_score - chest_score|; high when views concur.
+    terms:
+      conflict: {type: trapezoid, params: [0.0, 0.0, 0.2, 0.5]}
+      partial: {type: triangle, params: [0.3, 0.6, 0.9]}
+      agree: {type: trapezoid, params: [0.7, 0.9, 1.0, 1.0]}
+
+rules:
+  - id: both_high
+    description: Both views say stress and agree -> high stress.
+    if: {wrist_score: high, chest_score: high, agreement: agree}
+    then: high
+
+  - id: both_high_partial
+    description: Both views say stress with partial agreement -> high stress.
+    if: {wrist_score: high, chest_score: high}
+    then: high
+
+  - id: both_low
+    description: Both views say non-stress -> low stress.
+    if: {wrist_score: low, chest_score: low}
+    then: low
+
+  - id: mixed_medium
+    description: One view high, the other medium -> elevated but inconclusive.
+    if: {wrist_score: medium, chest_score: high}
+    then: medium
+
+  - id: mixed_medium_high_wrist
+    description: Wrist high, chest medium -> elevated but inconclusive.
+    if: {wrist_score: high, chest_score: medium}
+    then: medium
+
+  - id: mixed_medium_low
+    description: One view medium, the other low -> inconclusive leaning calm.
+    if: {wrist_score: medium, chest_score: low}
+    then: medium
+
+  - id: weak_evidence
+    description: Both views only medium -> uncertain.
+    if: {wrist_score: medium, chest_score: medium}
+    then: uncertain
+
+  - id: conflict
+    description: Views disagree strongly -> report uncertainty, do not force a label.
+    if: {agreement: conflict}
+    then: uncertain
+
+  - id: single_view_stress
+    description: Only the chest view says stress while wrist disagrees -> uncertain.
+    if: {wrist_score: low, chest_score: high}
+    then: uncertain
+
+  - id: single_view_stress_wrist
+    description: Only the wrist view says stress while chest disagrees -> uncertain.
+    if: {wrist_score: high, chest_score: low}
+    then: uncertain

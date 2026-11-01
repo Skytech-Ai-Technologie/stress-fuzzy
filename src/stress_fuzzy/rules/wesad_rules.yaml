@@ -1,0 +1,111 @@
+# WESAD fuzzy rule base: stress from wrist physiology incl. HRV.
+#
+# Domain priors (hypotheses to be evaluated on held-out subjects, NOT
+# validated clinical knowledge): acute stress raises EDA, raises heart rate,
+# and lowers short-term HRV (RMSSD). Movement and poor signal quality must
+# reduce confidence instead of masquerading as stress.
+
+meta:
+  engine: mamdani
+  output_variable: stress
+  output_range: [0.0, 1.0]
+  inference: min-max
+  defuzzification: centroid
+  description: >
+    Quality-aware Mamdani stress scoring for WESAD wrist windows
+    (EDA 4 Hz, BVP 64 Hz -> HRV, TEMP, ACC).
+
+output_terms:
+  low:
+    type: trapezoid
+    params: [0.0, 0.0, 0.15, 0.45]
+  medium:
+    type: triangle
+    params: [0.25, 0.5, 0.75]
+  high:
+    type: trapezoid
+    params: [0.55, 0.85, 1.0, 1.0]
+
+# Bounds estimated from TRAINING subjects only (25/50/75th percentiles with
+# saturating shoulder trapezoids), saved per fold.
+fitted_inputs:
+  eda_level:
+    source: eda__mean
+    description: Window mean skin conductance (microsiemens).
+  hr_mean:
+    source: hr_mean
+    description: Mean heart rate from BVP pulse peaks (bpm).
+  hrv_rmssd:
+    source: hrv_rmssd
+    description: Short-term heart-rate variability (RMSSD, seconds).
+  bvp_variability:
+    source: bvp__std
+    description: BVP amplitude variability (raw units).
+  temp_deviation:
+    source: temp_deviation
+    description: Absolute skin-temperature deviation from 33 C.
+  motion:
+    source: acc_motion
+    description: Accelerometer-magnitude variability (movement proxy).
+
+fixed_inputs:
+  quality:
+    description: Window quality in [0, 1] (EDA flatline/missing penalties).
+    terms:
+      poor: {type: trapezoid, params: [0.0, 0.0, 0.25, 0.5]}
+      fair: {type: triangle, params: [0.25, 0.5, 0.75]}
+      good: {type: trapezoid, params: [0.5, 0.75, 1.0, 1.0]}
+
+rules:
+  # --- stress evidence (synergistic physiological response) ---
+  - id: stress_eda_hrv
+    description: High EDA with suppressed HRV and low movement raises stress.
+    if: {eda_level: high, hrv_rmssd: low, motion: low, quality: good}
+    then: high
+
+  - id: stress_eda_hr
+    description: High EDA with elevated heart rate and low movement raises stress.
+    if: {eda_level: high, hr_mean: high, motion: low, quality: good}
+    then: high
+
+  - id: stress_eda_temp
+    description: High EDA with marked temperature deviation raises stress.
+    if: {eda_level: high, temp_deviation: high, quality: good}
+    then: high
+
+  - id: stress_bvp_hr
+    description: High BVP variability with elevated heart rate raises stress.
+    if: {bvp_variability: high, hr_mean: high, motion: low, quality: good}
+    then: high
+
+  # --- calm evidence ---
+  - id: calm_eda_hrv
+    description: Low EDA with preserved HRV suggests non-stress.
+    if: {eda_level: low, hrv_rmssd: high, quality: good}
+    then: low
+
+  - id: calm_eda_hr
+    description: Low EDA with low heart rate suggests non-stress.
+    if: {eda_level: low, hr_mean: low, motion: low, quality: good}
+    then: low
+
+  - id: calm_eda_temp
+    description: Low EDA with stable temperature suggests non-stress.
+    if: {eda_level: low, temp_deviation: low, quality: good}
+    then: low
+
+  # --- uncertainty / quality handling ---
+  - id: poor_quality
+    description: Poor signal quality -> no trust in any reading.
+    if: {quality: poor}
+    then: uncertain
+
+  - id: motion_artifact
+    description: High movement at fair quality -> motion artifact risk.
+    if: {motion: high, quality: fair}
+    then: uncertain
+
+  - id: conflicting_eda_hrv
+    description: High EDA but preserved HRV despite good quality -> conflicting response.
+    if: {eda_level: high, hrv_rmssd: high, motion: low, quality: good}
+    then: uncertain

@@ -1,0 +1,37 @@
+# user-provided raw data - never commit
+data/
+database/
+*.m4a
+*.wav
+*.mp4
+*.avi
+
+# generated artifacts
+artifacts/
+bench/
+models/
+
+# large generated files
+*.h5
+*.parquet
+
+# secrets
+.env
+*.pem
+*credentials*
+
+# python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+.pytest_cache/
+
+# editors / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

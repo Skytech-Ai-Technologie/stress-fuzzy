@@ -1,0 +1,101 @@
+# Fuzzy rule base for physiological stress scoring.
+#
+# These rules are DESIGN CHOICES encoding domain heuristics about how
+# physiological responses relate to momentary stress. They are hypotheses to
+# be evaluated against held-out participants, NOT validated clinical
+# knowledge, and must not be presented as such.
+#
+# Consequents: low | medium | high (stress output terms) or "uncertain"
+# (the rule reduces confidence instead of pushing the stress score).
+
+meta:
+  engine: mamdani
+  output_variable: stress
+  output_range: [0.0, 1.0]
+  inference: min-max
+  defuzzification: centroid
+  description: >
+    Quality-aware Mamdani stress scoring from physiological window features.
+
+output_terms:
+  low:
+    type: trapezoid
+    params: [0.0, 0.0, 0.15, 0.45]
+  medium:
+    type: triangle
+    params: [0.25, 0.5, 0.75]
+  high:
+    type: trapezoid
+    params: [0.55, 0.85, 1.0, 1.0]
+
+# Inputs whose membership bounds are estimated from TRAINING data only
+# (25th/50th/75th percentiles, shoulder trapezoids outside). Fixed inputs
+# carry explicit membership parameters.
+fitted_inputs:
+  eda_level:
+    source: eda__mean
+    description: Window mean electrodermal activity (microsiemens).
+  bvp_variability:
+    source: bvp__std
+    description: Window blood-volume-pulse variability (std, raw units).
+  temp_deviation:
+    source: temp_deviation
+    description: Absolute skin-temperature deviation from the 33 C reference.
+  motion:
+    source: acc_magnitude_std
+    description: Accelerometer-magnitude variability; movement/artifact proxy.
+
+fixed_inputs:
+  quality:
+    description: Window signal-quality index in [0, 1] from quality flags.
+    terms:
+      poor: {type: trapezoid, params: [0.0, 0.0, 0.25, 0.5]}
+      fair: {type: triangle, params: [0.25, 0.5, 0.75]}
+      good: {type: trapezoid, params: [0.5, 0.75, 1.0, 1.0]}
+
+rules:
+  - id: stress_eda_bvp
+    description: High EDA with high BVP variability, low motion and good quality raises stress.
+    if: {eda_level: high, bvp_variability: high, motion: low, quality: good}
+    then: high
+
+  - id: stress_eda_temp
+    description: High EDA with high temperature deviation and good quality raises stress.
+    if: {eda_level: high, temp_deviation: high, quality: good}
+    then: high
+
+  - id: medium_eda_bvp
+    description: Medium EDA with medium BVP variability on clean, still signal is inconclusive-medium.
+    if: {eda_level: medium, bvp_variability: medium, motion: low, quality: good}
+    then: medium
+
+  - id: medium_eda_temp
+    description: Medium EDA with medium temperature deviation on good quality is medium stress.
+    if: {eda_level: medium, temp_deviation: medium, quality: good}
+    then: medium
+
+  - id: calm_eda_bvp
+    description: Low EDA and low BVP variability with good quality suggests non-stress.
+    if: {eda_level: low, bvp_variability: low, quality: good}
+    then: low
+
+  - id: calm_eda_temp_motion
+    description: Low EDA, small temperature deviation, still and clean signal suggests non-stress.
+    if: {eda_level: low, temp_deviation: low, motion: low, quality: good}
+    then: low
+
+  # --- uncertainty / quality handling (quality-aware mechanism) ---
+  - id: poor_quality
+    description: Poor signal quality -> no trust in any physiological reading.
+    if: {quality: poor}
+    then: uncertain
+
+  - id: motion_artifact
+    description: High movement on only fair quality -> motion artifact risk.
+    if: {motion: high, quality: fair}
+    then: uncertain
+
+  - id: conflicting_eda_bvp
+    description: High EDA but low BVP variability despite good quality -> conflicting response.
+    if: {eda_level: high, bvp_variability: low, motion: low, quality: good}
+    then: uncertain

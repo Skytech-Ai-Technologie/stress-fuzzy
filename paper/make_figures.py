@@ -59,95 +59,98 @@ def short(name: str) -> str:
 
 
 def fig_architecture():
-    fig, ax = plt.subplots(figsize=(12.5, 5.8))
-    ax.set_xlim(0, 120)
-    ax.set_ylim(0, 56)
-    ax.axis("off")
+    with matplotlib.rc_context({"font.family": "serif",
+                        "font.serif": ["Times New Roman"],
+                        "mathtext.fontset": "stix"}):
+        fig, ax = plt.subplots(figsize=(12.5, 5.8))
+        ax.set_xlim(0, 120)
+        ax.set_ylim(0, 56)
+        ax.axis("off")
 
-    def box(x, y, w, h, text, fc="#eef3fb", ec="#3b5b8f", fs=8.5, bold=False,
-            ls="-"):
-        ax.add_patch(FancyBboxPatch((x, y), w, h,
-                                    boxstyle="round,pad=0.6",
-                                    fc=fc, ec=ec, lw=1.3, linestyle=ls))
-        ax.text(x + w / 2, y + h / 2, text, ha="center", va="center",
-                fontsize=fs, fontweight="bold" if bold else "normal")
+        def box(x, y, w, h, text, fc="#eef3fb", ec="#3b5b8f", fs=8.5, bold=False,
+                ls="-"):
+            ax.add_patch(FancyBboxPatch((x, y), w, h,
+                                        boxstyle="round,pad=0.6",
+                                        fc=fc, ec=ec, lw=1.3, linestyle=ls))
+            ax.text(x + w / 2, y + h / 2, text, ha="center", va="center",
+                    fontsize=fs, fontweight="bold" if bold else "normal")
 
-    def arrow(x1, y1, x2, y2, style="-|>", ls="-", color="#444444"):
-        ax.add_patch(FancyArrowPatch((x1, y1), (x2, y2),
-                                     arrowstyle=style, mutation_scale=13,
-                                     lw=1.2, color=color, linestyle=ls))
+        def arrow(x1, y1, x2, y2, style="-|>", ls="-", color="#444444"):
+            ax.add_patch(FancyArrowPatch((x1, y1), (x2, y2),
+                                         arrowstyle=style, mutation_scale=13,
+                                         lw=1.2, color=color, linestyle=ls))
 
-    NL = "\n"
-    # ---- column 1: data sources --------------------------------------
-    box(2, 40, 20, 12, NL.join(["WESAD (15 subjects)", "E4 wrist 4/64/32 Hz",
-        "RespiBAN chest 700 Hz", "labels: baseline / stress / amusement"]),
-        fc="#f5f5f0")
-    box(2, 22, 20, 10, NL.join(["WorkStress3D (20 participants)",
-        "E4 wrist 4 Hz", "phase labels 0/1 (+2 dropped)"]), fc="#f5f5f0")
-    box(2, 6, 20, 10, NL.join(["Audit gate", "aliases, undocumented label 2,",
-        "modality alignment, overlap"]), fc="#fdf2e3", ec="#8a6d3b", fs=7.5)
+        NL = "\n"
+        # ---- column 1: data sources --------------------------------------
+        box(2, 40, 20, 12, NL.join(["WESAD (15 subjects)", "E4 wrist 4/64/32 Hz",
+            "RespiBAN chest 700 Hz", "labels: baseline / stress / amusement"]),
+            fc="#f5f5f0")
+        box(2, 22, 20, 10, NL.join(["WorkStress3D (20 participants)",
+            "E4 wrist 4 Hz", "phase labels 0/1 (+2 dropped)"]), fc="#f5f5f0")
+        box(2, 6, 20, 10, NL.join(["Audit gate", "aliases, undocumented label 2,",
+            "modality alignment, overlap"]), fc="#fdf2e3", ec="#8a6d3b", fs=7.5)
 
-    # ---- column 2: windowing ------------------------------------------
-    box(25, 42, 14, 9, NL.join(["non-overlapping", "60 s windows",
-        "(phase-pure)"]), fc="#eef7ee", ec="#3b7a3b", fs=7.5)
-    box(25, 24, 14, 8, NL.join(["non-overlapping", "14 s windows",
-        "(phase-pure)"]), fc="#eef7ee", ec="#3b7a3b", fs=7.5)
+        # ---- column 2: windowing ------------------------------------------
+        box(25, 42, 14, 9, NL.join(["non-overlapping", "60 s windows",
+            "(phase-pure)"]), fc="#eef7ee", ec="#3b7a3b", fs=7.5)
+        box(25, 24, 14, 8, NL.join(["non-overlapping", "14 s windows",
+            "(phase-pure)"]), fc="#eef7ee", ec="#3b7a3b", fs=7.5)
 
-    # ---- column 3: feature sets ---------------------------------------
-    box(44, 44, 20, 7, NL.join(["wrist features (WESAD)",
-        "EDA/TEMP/ACC + HRV (64 Hz)"]), fs=7.5)
-    box(44, 34, 20, 7, NL.join(["chest features (WESAD)",
-        "ECG->HRV, EDA, TEMP (700 Hz)"]), fs=7.5)
-    box(44, 24, 20, 7, NL.join(["wrist features 4 Hz (WorkStress3D)",
-        "EDA/TEMP/ACC stats, no HRV"]), fs=7.5)
+        # ---- column 3: feature sets ---------------------------------------
+        box(44, 44, 20, 7, NL.join(["wrist features (WESAD)",
+            "EDA/TEMP/ACC + HRV (64 Hz)"]), fs=7.5)
+        box(44, 34, 20, 7, NL.join(["chest features (WESAD)",
+            "ECG->HRV, EDA, TEMP (700 Hz)"]), fs=7.5)
+        box(44, 24, 20, 7, NL.join(["wrist features 4 Hz (WorkStress3D)",
+            "EDA/TEMP/ACC stats, no HRV"]), fs=7.5)
 
-    # ---- column 4: calibrated unimodal models -------------------------
-    box(69, 40, 18, 8, NL.join(["calibrated SVM", "(wrist view)",
-        "fold-local fit"]), fc="#fdeaea", ec="#a33", fs=7.5)
-    box(69, 28, 18, 8, NL.join(["calibrated SVM", "(chest view)",
-        "fold-local fit"]), fc="#fdeaea", ec="#a33", fs=7.5)
+        # ---- column 4: calibrated unimodal models -------------------------
+        box(69, 40, 18, 8, NL.join(["calibrated SVM", "(wrist view)",
+            "fold-local fit"]), fc="#fdeaea", ec="#a33", fs=7.5)
+        box(69, 28, 18, 8, NL.join(["calibrated SVM", "(chest view)",
+            "fold-local fit"]), fc="#fdeaea", ec="#a33", fs=7.5)
 
-    # ---- column 5: fusion + outputs ------------------------------------
-    box(92, 30, 26, 16, NL.join(["Mamdani fuzzy fusion layer",
-        "class-conditional score terms", "9 rules incl. conflict/quality",
-        "min-max inference, centroid"]),
-        fc="#fff4f2", ec="#c0392b", fs=8, bold=True)
-    box(92, 8, 26, 12, NL.join(["outputs", "stress score in [0, 1]",
-        "low / uncertain / high", "fired rules + memberships",
-        "coverage-reported metrics"]), fc="#f0f7f4", ec="#2c6e5a", fs=7.5)
+        # ---- column 5: fusion + outputs ------------------------------------
+        box(92, 30, 26, 16, NL.join(["Mamdani fuzzy fusion layer",
+            "class-conditional score terms", "9 rules incl. conflict/quality",
+            "min-max inference, centroid"]),
+            fc="#fff4f2", ec="#c0392b", fs=8, bold=True)
+        box(92, 8, 26, 12, NL.join(["outputs", "stress score in [0, 1]",
+            "low / uncertain / high", "fired rules + memberships",
+            "coverage-reported metrics"]), fc="#f0f7f4", ec="#2c6e5a", fs=7.5)
 
-    # ---- arrows (routing avoids every box) -----------------------------
-    arrow(22, 46, 24.5, 46)          # WESAD -> its windows
-    arrow(22, 27, 24.5, 28)          # WorkStress3D -> its windows
-    arrow(12, 16, 12, 21.5, ls="--", color="#8a6d3b")  # audit gates WS3D branch
-    ax.text(13.2, 18.2, "gates this branch", fontsize=6.5,
-            style="italic", color="#8a6d3b")
+        # ---- arrows (routing avoids every box) -----------------------------
+        arrow(22, 46, 24.5, 46)          # WESAD -> its windows
+        arrow(22, 27, 24.5, 28)          # WorkStress3D -> its windows
+        arrow(12, 16, 12, 21.5, ls="--", color="#8a6d3b")  # audit gates WS3D branch
+        ax.text(13.2, 18.2, "gates this branch", fontsize=6.5,
+                style="italic", color="#8a6d3b")
 
-    arrow(39, 47, 43.5, 47.5)        # WESAD windows -> wrist features
-    arrow(39, 44, 43.5, 37.5)        # WESAD windows -> chest features
-    arrow(39, 28, 43.5, 27.5)        # WS3D windows -> wrist-4Hz features
+        arrow(39, 47, 43.5, 47.5)        # WESAD windows -> wrist features
+        arrow(39, 44, 43.5, 37.5)        # WESAD windows -> chest features
+        arrow(39, 28, 43.5, 27.5)        # WS3D windows -> wrist-4Hz features
 
-    arrow(64, 47.5, 68.5, 44.5)      # wrist feat -> wrist SVM
-    arrow(64, 37.5, 68.5, 32.5)      # chest feat -> chest SVM
-    arrow(64, 27.5, 68.5, 42.0)      # WS3D wrist feat -> wrist SVM (view shared)
+        arrow(64, 47.5, 68.5, 44.5)      # wrist feat -> wrist SVM
+        arrow(64, 37.5, 68.5, 32.5)      # chest feat -> chest SVM
+        arrow(64, 27.5, 68.5, 42.0)      # WS3D wrist feat -> wrist SVM (view shared)
 
-    arrow(87, 44, 91.5, 38)          # wrist SVM -> fusion
-    arrow(87, 32, 91.5, 35)          # chest SVM -> fusion
-    arrow(105, 29.5, 105, 20.5)      # fusion -> outputs
+        arrow(87, 44, 91.5, 38)          # wrist SVM -> fusion
+        arrow(87, 32, 91.5, 35)          # chest SVM -> fusion
+        arrow(105, 29.5, 105, 20.5)      # fusion -> outputs
 
-    ax.text(2, 4.6, "audit gate blocks chest/audio/facial modelling on "
-                    "WorkStress3D (no participant keys / timestamps); fusion "
-                    "therefore runs on WESAD only",
-            fontsize=7.5, style="italic", color="#8a6d3b")
-    ax.text(2, 1.2, "inner-GroupKFold out-of-fold scores fit the fusion terms "
-                    "(leakage-safe); thresholds chosen on training scores only",
-            fontsize=7.5, style="italic", color="#555555")
+        ax.text(2, 4.6, "audit gate blocks chest/audio/facial modelling on "
+                        "WorkStress3D (no participant keys / timestamps); fusion "
+                        "therefore runs on WESAD only",
+                fontsize=7.5, style="italic", color="#8a6d3b")
+        ax.text(2, 1.2, "inner-GroupKFold out-of-fold scores fit the fusion terms "
+                        "(leakage-safe); thresholds chosen on training scores only",
+                fontsize=7.5, style="italic", color="#555555")
 
-    ax.set_title("System architecture: interpretable quality-gated fuzzy "
-                 "fusion of calibrated unimodal evidence", fontsize=10.5)
-    fig.tight_layout()
-    fig.savefig(FIG / "fig1_architecture.png", dpi=150)
-    plt.close(fig)
+        ax.set_title("System architecture: interpretable quality-gated fuzzy "
+                     "fusion of calibrated unimodal evidence", fontsize=10.5)
+        fig.tight_layout()
+        fig.savefig(FIG / "fig1_architecture.png", dpi=150)
+        plt.close(fig)
 
 
 def fig_mamdani():

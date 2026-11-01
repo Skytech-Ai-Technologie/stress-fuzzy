@@ -213,7 +213,7 @@ Binary task (stress vs non-stress), 547 windows, balanced accuracy:
 | SVM wrist-only / chest-only | 0.862 / 0.839 | 0.824 / 0.745 |
 | random forest | 0.881 | 0.848 |
 | **fuzzy multimodal fusion (Mamdani over calibrated wrist+chest scores)** | **0.879** | 0.818 |
-| fuzzy fusion, covered windows only (83% coverage) | **0.905** | 0.836 |
+| fuzzy fusion, covered windows only (83% coverage) | **0.905** (accuracy 0.941) | 0.836 |
 
 Reading: the interpretable fusion layer matches the best black-box baseline
 (0.879 vs 0.881) while adding abstention (conflict/quality rules flag 17% of

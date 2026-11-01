@@ -274,7 +274,7 @@ participant identity, not stress.
 | SVM chest-only / wrist-only | 0.839 / 0.862 | 0.745 / 0.824 |
 | random forest | 0.881 | 0.848 |
 | **fuzzy multimodal fusion** | **0.879** | 0.818 |
-| **fuzzy fusion, covered windows (83.2 % coverage)** | **0.905** | 0.836 |
+| **fuzzy fusion, covered windows (83.2 % coverage)** | **0.905** (accuracy 0.941) | 0.836 |
 
 The interpretable fusion layer forfeits 0.002 balanced accuracy against the
 best black-box model while adding per-window explanations and a

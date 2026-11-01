@@ -244,6 +244,12 @@ def fig_benchmarks():
         vals.append(ov["balanced_accuracy"])
         errs.append(0)
         cols.append(C_FUZZY if m.startswith("fuzzy") else C_BASE)
+    covm = we["models"]["fuzzy_multimodal_fusion"].get("covered_only")
+    if covm:
+        names.append("fuzzy fusion (covered windows,\n83% coverage)")
+        vals.append(covm["balanced_accuracy"])
+        errs.append(0)
+        cols.append(C_OK)
     _bar_panel(axes[1], names, vals, None, cols,
                "WESAD - LOSO (15 subjects, 547 windows)")
 

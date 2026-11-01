@@ -90,7 +90,7 @@ stress).
 
 WorkStress3D provides 20 participants with E4 signals downsampled to 4 Hz
 (EDA, BVP, TEMP, ACC) and an `emotion` column following a phase-structured
-protocol. Our audit (`reports/data_audit.md`) established, before any
+protocol. Our audit (`docs/data_audit.md`) established, before any
 modelling:
 
 - the participant column is spelled `Subject` in two files and `subjet`

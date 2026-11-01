@@ -26,7 +26,7 @@ transparent unimodal baselines, under **participant-level holdout**
   identical grouped folds; runs ablations (quality-awareness, personalisation).
 - **Blocks multimodal fusion**: the shipped audio and facial files have no
   participant keys and no timestamps, so alignment cannot be demonstrated
-  (see `reports/data_audit.md`).
+  (see `docs/data_audit.md`).
 
 It does **not** claim effectiveness: in the current real-data run, no model
 clearly beat chance under LOSO (see Results below). Fuzzy membership values
@@ -81,9 +81,9 @@ python -m pytest tests
 
 | path | content |
 |---|---|
-| `reports/data_audit.md` | human-readable audit + assumptions |
+| `reports/data_audit.md` | audit (generated locally; committed snapshot in `docs/`) |
 | `artifacts/data_audit.json` | machine-readable audit |
-| `reports/evaluation_report.md` | full evaluation report |
+| `reports/evaluation_report.md` | full report (generated locally; committed snapshot in `docs/`) |
 | `artifacts/evaluation_results.json` | per-fold, per-participant, aggregate metrics |
 | `artifacts/fold_metrics.csv`, `artifacts/participant_metrics.csv` | tabular metrics |
 | `artifacts/fuzzy_membership_bounds.json` | membership limits + thresholds, per fold |
@@ -169,7 +169,7 @@ variability:
 Honest reading: under participant-level holdout, physiological windows from
 this dataset do not support confident stress detection with these features.
 The fuzzy model abstains often (38% coverage) - its covered-only metrics are
-in `reports/evaluation_report.md`. Personalisation did not help here.
+in `docs/evaluation_report.md`. Personalisation did not help here.
 These numbers are NOT comparable to results reported in other papers on this
 dataset without identical splits and protocols.
 

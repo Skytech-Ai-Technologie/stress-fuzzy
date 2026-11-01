@@ -138,11 +138,10 @@ def fig_architecture():
         arrow(87, 32, 91.5, 35)          # chest SVM -> fusion
         arrow(105, 29.5, 105, 20.5)      # fusion -> outputs
 
-        ax.text(2, 4.6, "audit gate blocks chest/audio/facial modelling on "
-                        "WorkStress3D (no participant keys / timestamps); fusion "
-                        "therefore runs on WESAD only",
+        ax.text(2, 2.6, "audit gate: no chest/audio/facial modelling for "
+                        "WorkStress3D (no participant keys or timestamps)",
                 fontsize=7.5, style="italic", color="#8a6d3b")
-        ax.text(2, 1.2, "inner-GroupKFold out-of-fold scores fit the fusion terms "
+        ax.text(2, 0.4, "inner-GroupKFold out-of-fold scores fit the fusion terms "
                         "(leakage-safe); thresholds chosen on training scores only",
                 fontsize=7.5, style="italic", color="#555555")
 
